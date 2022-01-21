@@ -1,5 +1,8 @@
-import 'package:flutter/material.dart';
+import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
@@ -10,10 +13,53 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
 
 
-  List<String> _tarefas = ["Agradecer a Deus", "Se alimentar bem", "Trabalhar", "Estudar", "Cuidar de mim"];
+  List _tarefas = [];
+
+  Future<File> _getFile() async{
+    final diretorio = await getApplicationDocumentsDirectory();
+    return File("${diretorio.path}/dados.json");
+  }
+
+  void _salvarTarefas() async {
+
+    var arquivo = await _getFile();
+
+    Map<String, dynamic> tarefa = Map();
+    tarefa["titulo"] = "Agradecer a Deus";
+    tarefa["realizada"] = false;
+
+    _tarefas.add(tarefa);
+
+    String dados = json.encode(_tarefas);
+    arquivo.writeAsString(dados);
+  }
+
+  _lerArquivo() async {
+      try{
+        final arquivo = await _getFile();
+        return arquivo.readAsString();
+      }
+      catch(e){
+        print("ERRO-->"+ e.toString());
+        return null;
+      }
+  }
+
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    _lerArquivo().then((dados){
+      setState(() {
+        _tarefas = json.decode(dados);
+      });
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
+    // _salvarTarefas();
     return Scaffold(
       appBar: AppBar(
         title: Text("Lista de Tarefas"),
@@ -25,7 +71,7 @@ class _HomeState extends State<Home> {
               itemCount: _tarefas.length,
               itemBuilder: (context, index){
                 return ListTile(
-                  title: Text(_tarefas[index]),
+                  title: Text(_tarefas[index]["titulo"]),
                 );
               }))
         ],
