@@ -14,22 +14,27 @@ class _HomeState extends State<Home> {
 
 
   List _tarefas = [];
+  TextEditingController _controllerTarefa = TextEditingController();
 
   Future<File> _getFile() async{
     final diretorio = await getApplicationDocumentsDirectory();
     return File("${diretorio.path}/dados.json");
   }
 
-  void _salvarTarefas() async {
 
-    var arquivo = await _getFile();
-
+  _salvarTarefa(){
     Map<String, dynamic> tarefa = Map();
-    tarefa["titulo"] = "Agradecer a Deus";
+    tarefa["titulo"] = _controllerTarefa.text;
     tarefa["realizada"] = false;
+    setState(() {
+      _tarefas.add(tarefa);
+    });
+    _salvarArquivo();
+    _controllerTarefa.text = "";
+  }
 
-    _tarefas.add(tarefa);
-
+  void _salvarArquivo() async {
+    var arquivo = await _getFile();
     String dados = json.encode(_tarefas);
     arquivo.writeAsString(dados);
   }
@@ -70,9 +75,15 @@ class _HomeState extends State<Home> {
           Expanded(child: ListView.builder(
               itemCount: _tarefas.length,
               itemBuilder: (context, index){
-                return ListTile(
-                  title: Text(_tarefas[index]["titulo"]),
-                );
+                return CheckboxListTile(
+                    title: Text(_tarefas[index]["titulo"]),
+                    value: _tarefas[index]["realizada"],
+                    onChanged: (valorAlterado){
+                      setState(() {
+                        _tarefas[index]["realizada"]= valorAlterado;
+                      });
+                      _salvarArquivo();
+                    });
               }))
         ],
       ),
@@ -82,11 +93,12 @@ class _HomeState extends State<Home> {
               builder: (context){
                 return AlertDialog(
                  title: Text("Adicinar tarefa"),
-                 content: const TextField(
-                   decoration: InputDecoration(
+                 content: TextField(
+                   decoration: const InputDecoration(
                      labelText: "Digite a tarefa",
                    ),
                    onChanged: null,
+                   controller: _controllerTarefa,
                  ),
                   actions: [TextButton(
                       onPressed: (){
@@ -95,7 +107,7 @@ class _HomeState extends State<Home> {
                       child: Text("Cancelar")),
                     TextButton(
                         onPressed: (){
-                          //salvar
+                          _salvarTarefa();
                           Navigator.pop(context);
                         },
                         child: Text("Salvar")),
