@@ -62,6 +62,38 @@ class _HomeState extends State<Home> {
   }
 
 
+  Widget criarItemLista(context, index){
+
+    final item = _tarefas[index]["titulo"];
+
+    return Dismissible(
+        key: Key(item+index.toString()),
+        direction: DismissDirection.endToStart,
+        onDismissed: (direction){
+          _tarefas.removeAt(index);
+          _salvarArquivo();
+        },
+        background: Container(
+          color: Colors.red,
+          padding: EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: const [
+              Icon(Icons.delete, color: Colors.white),
+            ],
+          ),
+        ),
+        child: CheckboxListTile(
+            title: Text(_tarefas[index]["titulo"]),
+            value: _tarefas[index]["realizada"],
+            onChanged: (valorAlterado){
+              setState(() {
+                _tarefas[index]["realizada"]= valorAlterado;
+              });
+              _salvarArquivo();
+            }));
+  }
+
   @override
   Widget build(BuildContext context) {
     // _salvarTarefas();
@@ -74,17 +106,7 @@ class _HomeState extends State<Home> {
         children: [
           Expanded(child: ListView.builder(
               itemCount: _tarefas.length,
-              itemBuilder: (context, index){
-                return CheckboxListTile(
-                    title: Text(_tarefas[index]["titulo"]),
-                    value: _tarefas[index]["realizada"],
-                    onChanged: (valorAlterado){
-                      setState(() {
-                        _tarefas[index]["realizada"]= valorAlterado;
-                      });
-                      _salvarArquivo();
-                    });
-              }))
+              itemBuilder: criarItemLista))
         ],
       ),
       floatingActionButton: FloatingActionButton(
@@ -120,4 +142,6 @@ class _HomeState extends State<Home> {
       ),
     );
   }
+
+
 }
