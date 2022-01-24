@@ -14,6 +14,7 @@ class _HomeState extends State<Home> {
 
 
   List _tarefas = [];
+  Map<String, dynamic> _tarefaExcluida = Map();
   TextEditingController _controllerTarefa = TextEditingController();
 
   Future<File> _getFile() async{
@@ -67,11 +68,35 @@ class _HomeState extends State<Home> {
     final item = _tarefas[index]["titulo"];
 
     return Dismissible(
-        key: Key(item+index.toString()),
+        key: Key(item+index.toString()+DateTime.now().microsecondsSinceEpoch.toString()),
         direction: DismissDirection.endToStart,
         onDismissed: (direction){
+
+          _tarefaExcluida = _tarefas[index];
+
           _tarefas.removeAt(index);
           _salvarArquivo();
+
+          final snackbar = SnackBar(
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 5),
+              content: Text("Tarefa removida!"),
+              action: SnackBarAction(
+              label: "Desfazer",
+              textColor: Colors.white,
+              onPressed: (){
+
+                setState(() {
+                  _tarefas.insert(index, _tarefaExcluida);
+                });
+
+                _salvarArquivo();
+              },
+          ),
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(snackbar);
+
         },
         background: Container(
           color: Colors.red,
